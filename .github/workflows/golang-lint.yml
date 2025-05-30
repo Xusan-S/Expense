@@ -1,0 +1,40 @@
+name: golangci-lint
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  golangci:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-go@v4
+        with:
+          go-version: "stable"
+          cache: false
+
+      - name: Clean mod cache
+        run: go clean -modcache
+
+      - name: Verify Go Modules
+        run: go list -m all
+
+      - name: Install dependencies
+        run: go mod tidy && go mod download
+
+      - name: Build project
+        run: go build -v ./...
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          args: --out-format=github-actions --timeout 10m
